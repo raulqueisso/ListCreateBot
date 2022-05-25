@@ -42,8 +42,17 @@ namespace ListCreateBot {
             var messageText = update.Message.Text;
 
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
+
+            string text;
             
-            SendMessage(botClient, cancellationToken, chatId, messageText);
+            if (messageText == "/add") {
+                text = "OK! Send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
+            }
+            else {
+                text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
+            }
+
+            SendMessage(botClient, cancellationToken, chatId, text);
         }
 
         private static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken) {
