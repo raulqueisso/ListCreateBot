@@ -42,12 +42,8 @@ namespace ListCreateBot {
             var messageText = update.Message.Text;
 
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
-
-            // Echo received message text
-            Message sentMessage = await botClient.SendTextMessageAsync(
-                chatId: chatId,
-                text: "You said:\n" + messageText,
-                cancellationToken: cancellationToken);
+            
+            SendMessage(botClient, cancellationToken, chatId, messageText);
         }
 
         private static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken) {
@@ -77,5 +73,11 @@ namespace ListCreateBot {
                 cancellationToken: cts.Token);
         }
 
+        private static async void SendMessage(ITelegramBotClient botClient, CancellationToken cancellationToken, ChatId chatId, string text) {
+            Message sentMessage = await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: text,
+                cancellationToken: cancellationToken);
+        }
     }
 }
