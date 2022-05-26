@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,10 +12,27 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace ListCreateBot {
+    struct BotUpdate {
+        public long chatId;
+        public string waitedInput;
+        public string savedList;
+    }
     class Program {
+        static string fileName = "updates.json";
+        static List<BotUpdate> botUpdates = new List<BotUpdate>();
+
         static async Task Main(string[] args) {
             var botToken = GetBotToken();
             var botClient = new TelegramBotClient(botToken);
+
+            // Read all saved updates
+            try {
+                var botUpdateString = System.IO.File.ReadAllText(fileName);
+
+                botUpdates = JsonConvert.DeserializeObject<List<BotUpdate>>(botUpdateString) ?? botUpdates;
+            } catch (Exception ex) {
+                Console.WriteLine($"Error reading or deserializing {ex}");
+            }
 
             using var cts = new CancellationTokenSource();
 
@@ -44,11 +62,12 @@ namespace ListCreateBot {
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
 
             string text;
-            
+
             if (messageText == "/add") {
                 text = "OK! Send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
-            }
-            else {
+
+                WriteUpdate(chatId, "/add", null);
+            } else {
                 text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
             }
 
@@ -87,6 +106,20 @@ namespace ListCreateBot {
                 chatId: chatId,
                 text: text,
                 cancellationToken: cancellationToken);
+        }
+
+        private static void WriteUpdate(long chatId, string waitedInput, string savedList) {
+            var _botUpdate = new BotUpdate {
+                chatId = chatId,
+                waitedInput = waitedInput,
+                savedList = savedList
+            };
+
+            botUpdates.Add(_botUpdate);
+
+            var botUpdateString = JsonConvert.SerializeObject(botUpdates);
+
+            System.IO.File.WriteAllText(fileName, botUpdateString);
         }
     }
 }
