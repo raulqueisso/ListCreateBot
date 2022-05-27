@@ -66,12 +66,14 @@ namespace ListCreateBot {
             if (messageText == "/add") {
                 text = "OK! Send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
-                WriteUpdate(chatId, "/add", null);
+                WriteUpdate(chatId, "/add");
             } else {
                 var botUpdatesId = GetBotUpdatesId(chatId);
 
                 if (botUpdatesId != -1 && botUpdates[botUpdatesId].waitedInput != null) {
                     text = $"{messageText} added to the list.";
+
+                    WriteUpdate(chatId, null, messageText);
                 }
                 else {
                     text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
@@ -134,6 +136,14 @@ namespace ListCreateBot {
             var botUpdateString = JsonConvert.SerializeObject(botUpdates);
 
             System.IO.File.WriteAllText(fileName, botUpdateString);
+        }
+
+        private static void WriteUpdate(long chatId, string waitedInput) {
+            var botUpdatesId = GetBotUpdatesId(chatId);
+
+            var savedList = botUpdates[botUpdatesId].savedList;
+
+            WriteUpdate(chatId, waitedInput, savedList);
         }
 
         private static int GetBotUpdatesId(long chatId) {
