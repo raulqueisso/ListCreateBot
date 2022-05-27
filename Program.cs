@@ -122,7 +122,14 @@ namespace ListCreateBot {
                 savedList = savedList
             };
 
-            botUpdates.Add(_botUpdate);
+            var botUpdatesId = GetBotUpdatesId(chatId);
+
+            if (botUpdatesId != -1) {
+                botUpdates[botUpdatesId] = _botUpdate;
+
+            } else {
+                botUpdates.Add(_botUpdate);
+            }
 
             var botUpdateString = JsonConvert.SerializeObject(botUpdates);
 
