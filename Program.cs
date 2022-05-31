@@ -14,7 +14,7 @@ using Telegram.Bot.Types.Enums;
 namespace ListCreateBot {
     struct BotUpdate {
         public long chatId;
-        public string waitedInput;
+        public string commandWaitingForInput;
         public string savedList;
     }
     class Program {
@@ -70,7 +70,7 @@ namespace ListCreateBot {
             } else {
                 var botUpdatesId = GetBotUpdatesId(chatId);
 
-                if (botUpdatesId != -1 && botUpdates[botUpdatesId].waitedInput != null) {
+                if (botUpdatesId != -1 && botUpdates[botUpdatesId].commandWaitingForInput != null) {
                     text = $"{messageText} added to the list.";
 
                     WriteUpdate(chatId, null, messageText);
@@ -117,10 +117,10 @@ namespace ListCreateBot {
                 cancellationToken: cancellationToken);
         }
 
-        private static void WriteUpdate(long chatId, string waitedInput, string savedList) {
+        private static void WriteUpdate(long chatId, string commandWaitingForInput, string savedList) {
             var _botUpdate = new BotUpdate {
                 chatId = chatId,
-                waitedInput = waitedInput,
+                commandWaitingForInput = commandWaitingForInput,
                 savedList = savedList
             };
 
@@ -138,12 +138,12 @@ namespace ListCreateBot {
             System.IO.File.WriteAllText(fileName, botUpdateString);
         }
 
-        private static void WriteUpdate(long chatId, string waitedInput) {
+        private static void WriteUpdate(long chatId, string commandWaitingForInput) {
             var botUpdatesId = GetBotUpdatesId(chatId);
 
             var savedList = botUpdates[botUpdatesId].savedList;
 
-            WriteUpdate(chatId, waitedInput, savedList);
+            WriteUpdate(chatId, commandWaitingForInput, savedList);
         }
 
         private static int GetBotUpdatesId(long chatId) {
