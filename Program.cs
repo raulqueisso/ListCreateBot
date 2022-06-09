@@ -17,22 +17,13 @@ namespace ListCreateBot {
         public string commandWaitingForInput;
         public string savedList;
     }
+
     class Program {
-        static string fileName = "updates.json";
-        static List<BotUpdate> botUpdates = new List<BotUpdate>();
+        static BotUpdate botUpdate;
 
         static async Task Main(string[] args) {
             var botToken = GetBotToken();
             var botClient = new TelegramBotClient(botToken);
-
-            // Read all saved updates
-            try {
-                var botUpdateString = System.IO.File.ReadAllText(fileName);
-
-                botUpdates = JsonConvert.DeserializeObject<List<BotUpdate>>(botUpdateString) ?? botUpdates;
-            } catch (Exception ex) {
-                Console.WriteLine($"Error reading or deserializing {ex}");
-            }
 
             using var cts = new CancellationTokenSource();
 
@@ -63,14 +54,17 @@ namespace ListCreateBot {
 
             string text;
 
+            var fileName = GetFileName(chatId);
+            if (System.IO.File.Exists(fileName)) {
+                ReadUpdate(chatId);
+            }
+
             if (messageText == "/add") {
                 text = "OK! Send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
                 WriteUpdate(chatId, "/add");
             } else {
-                var botUpdatesId = GetBotUpdatesId(chatId);
-
-                if (botUpdatesId != -1 && botUpdates[botUpdatesId].commandWaitingForInput != null) {
+                if (botUpdate.commandWaitingForInput != null) {
                     text = $"{messageText} added to the list.";
 
                     WriteUpdate(chatId, null, messageText);
@@ -117,6 +111,18 @@ namespace ListCreateBot {
                 cancellationToken: cancellationToken);
         }
 
+        private static void ReadUpdate(long chatId) {
+            // Read all saved updates
+            try {
+                var fileName = GetFileName(chatId);
+                var botUpdateString = System.IO.File.ReadAllText(fileName);
+                    
+                botUpdate = JsonConvert.DeserializeObject<BotUpdate>(botUpdateString);
+            } catch (Exception ex) {
+                Console.WriteLine($"Error reading or deserializing {ex}");
+            }
+        }
+
         private static void WriteUpdate(long chatId, string commandWaitingForInput, string savedList) {
             var _botUpdate = new BotUpdate {
                 chatId = chatId,
@@ -124,40 +130,25 @@ namespace ListCreateBot {
                 savedList = savedList
             };
 
-            var botUpdatesId = GetBotUpdatesId(chatId);
+            botUpdate = _botUpdate;
 
-            if (botUpdatesId != -1) {
-                botUpdates[botUpdatesId] = _botUpdate;
-
-            } else {
-                botUpdates.Add(_botUpdate);
-            }
-
-            var botUpdateString = JsonConvert.SerializeObject(botUpdates);
+            var botUpdateString = JsonConvert.SerializeObject(botUpdate);
+            var fileName = GetFileName(chatId);
 
             System.IO.File.WriteAllText(fileName, botUpdateString);
         }
 
         private static void WriteUpdate(long chatId, string commandWaitingForInput) {
-            var botUpdatesId = GetBotUpdatesId(chatId);
-
-            var savedList = botUpdates[botUpdatesId].savedList;
+            var savedList = botUpdate.savedList;
 
             WriteUpdate(chatId, commandWaitingForInput, savedList);
         }
 
-        private static int GetBotUpdatesId(long chatId) {
-            int botUpdatesId = -1;
+        private static string GetFileName(long chatId) {
+            var fileNameStart = "updates/update_";
+            var fileExtension = ".json";
 
-            var botUpdatesLength = botUpdates.Count();
-
-            for (int i = 0; i < botUpdatesLength; i++) {
-                if (botUpdates[i].chatId == chatId) {
-                    botUpdatesId = i;
-                }
-            }
-
-            return botUpdatesId;
+            return fileNameStart + chatId + fileExtension;
         }
     }
 }
