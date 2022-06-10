@@ -22,8 +22,7 @@ namespace ListCreateBot {
         static BotUpdate botUpdate;
 
         static void Main(string[] args) {
-            var botToken = GetBotToken();
-            var botClient = new TelegramBotClient(botToken);
+            var botClient = new TelegramBotClient(GetBotToken());
 
             using var cts = new CancellationTokenSource();
 
@@ -51,8 +50,7 @@ namespace ListCreateBot {
 
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
 
-            var fileName = GetFileName(chatId);
-            if (System.IO.File.Exists(fileName)) {
+            if (System.IO.File.Exists(GetFileName(chatId))) {
                 ReadUpdate(chatId);
             }
 
@@ -123,31 +121,23 @@ namespace ListCreateBot {
         }
 
         private static void WriteUpdate(long chatId, string commandWaitingForInput, string savedList) {
-            var _botUpdate = new BotUpdate {
+            botUpdate = new BotUpdate {
                 chatId = chatId,
                 commandWaitingForInput = commandWaitingForInput,
                 savedList = savedList
             };
 
-            botUpdate = _botUpdate;
-
             var botUpdateString = JsonConvert.SerializeObject(botUpdate);
-            var fileName = GetFileName(chatId);
 
-            System.IO.File.WriteAllText(fileName, botUpdateString);
+            System.IO.File.WriteAllText(GetFileName(chatId), botUpdateString);
         }
 
         private static void WriteUpdate(long chatId, string commandWaitingForInput) {
-            var savedList = botUpdate.savedList;
-
-            WriteUpdate(chatId, commandWaitingForInput, savedList);
+            WriteUpdate(chatId, commandWaitingForInput, botUpdate.savedList);
         }
 
         private static string GetFileName(long chatId) {
-            var fileNameStart = "updates/update_";
-            var fileExtension = ".json";
-
-            return fileNameStart + chatId + fileExtension;
+            return $"updates/update_{chatId}.json";
         }
     }
 }
