@@ -21,7 +21,7 @@ namespace ListCreateBot {
     class Program {
         static BotUpdate botUpdate;
 
-        static async Task Main(string[] args) {
+        static void Main(string[] args) {
             var botToken = GetBotToken();
             var botClient = new TelegramBotClient(botToken);
 
@@ -29,8 +29,7 @@ namespace ListCreateBot {
 
             StartBot(botClient, cts);
 
-            var me = await botClient.GetMeAsync();
-            Console.WriteLine($"Start listening for @{me.Username}");
+            Console.WriteLine($"Start listening for messages.");
             Console.ReadLine();
 
             // Send cancellation request to stop bot
@@ -52,12 +51,12 @@ namespace ListCreateBot {
 
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
 
-            string text;
-
             var fileName = GetFileName(chatId);
             if (System.IO.File.Exists(fileName)) {
                 ReadUpdate(chatId);
             }
+
+            string text;
 
             if (messageText == "/add") {
                 text = "OK! Send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
@@ -74,7 +73,7 @@ namespace ListCreateBot {
                 }
             }
 
-            SendMessage(botClient, cancellationToken, chatId, text);
+            await SendMessage(botClient, cancellationToken, chatId, text); 
         }
 
         private static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken) {
@@ -104,8 +103,8 @@ namespace ListCreateBot {
                 cancellationToken: cts.Token);
         }
 
-        private static async void SendMessage(ITelegramBotClient botClient, CancellationToken cancellationToken, ChatId chatId, string text) {
-            Message sentMessage = await botClient.SendTextMessageAsync(
+        private static async Task<Message> SendMessage(ITelegramBotClient botClient, CancellationToken cancellationToken, ChatId chatId, string text) {
+            return await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: text,
                 cancellationToken: cancellationToken);
