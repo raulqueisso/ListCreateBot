@@ -55,12 +55,24 @@ namespace ListCreateBot {
                 ReadBotData(chatId);
             }
 
-            string text;
+            var text = "";
 
             if (messageText == "/add") {
                 text = "OK! Send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
                 WriteBotData(chatId, "/add");
+            }
+            else if (messageText == "/mylist") {
+                if (botData.savedList == null) {
+                    text = "Your list is empty.\nUse command /add to add itens to your list.";
+                }
+                else {
+                    List<string> list = StringToList(botData.savedList);
+
+                    foreach (var item in list) {
+                        text += $"• {item}\n";
+                    }
+                }
             }
             else {
                 if (botData.commandWaitingForInput != null) {
@@ -145,6 +157,17 @@ namespace ListCreateBot {
 
         private static string GetFileName(long chatId) {
             return $"botData/botData_{chatId}.json";
+        }
+
+        private static List<string> StringToList(string listString) {
+            List<string> list = new List<string>();
+            list = listString.Split(", ").ToList();
+
+            foreach (var l in list) {
+                Console.WriteLine(l);
+            }
+
+            return list;
         }
     }
 }
