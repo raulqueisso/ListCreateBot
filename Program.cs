@@ -61,11 +61,17 @@ namespace ListCreateBot {
                 text = "OK! Send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
                 WriteBotData(chatId, "/add");
-            } else {
+            }
+            else {
                 if (botData.commandWaitingForInput != null) {
                     text = $"{messageText} added to the list.";
 
-                    WriteBotData(chatId, null, messageText);
+                    if (botData.savedList != null) {
+                        WriteBotData(chatId, null, $"{botData.savedList}, {messageText}");
+                    }
+                    else {
+                        WriteBotData(chatId, null, messageText);
+                    }
                 }
                 else {
                     text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
