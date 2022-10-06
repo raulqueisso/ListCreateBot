@@ -48,7 +48,7 @@ namespace ListCreateBot {
             var chatId = update.Message.Chat.Id;
             var messageText = update.Message.Text;
 
-            Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
+            Console.WriteLine($"Received a '{messageText}' message in chat {chatId}. {update.Message.Chat.Username}");
 
 
             if (System.IO.File.Exists(GetFileName(chatId))) {
@@ -58,7 +58,7 @@ namespace ListCreateBot {
             var text = "";
 
             if (messageText == "/add") {
-                text = "OK! Send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
+                text = "OK! To add items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
                 WriteBotData(chatId, "/add");
             }
@@ -72,18 +72,32 @@ namespace ListCreateBot {
                     }
                 }
             }
+            else if (messageText == "/remove") {
+                text = "OK! To remove, items send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
+
+                WriteBotData(chatId, "/remove");
+            }
             else {
-                if (botData.commandWaitingForInput != null) {
-                    text = $"{messageText} added to the list.";
-                    
+                if (botData.commandWaitingForInput == null) {
                     if (botData.savedList == null) {
                         botData.savedList = new List<string>();
                     }
 
                     var new_items = StringToList(messageText);
 
-                    foreach (var item in new_items) {
-                        botData.savedList.Add(item);
+                    if (botData.commandWaitingForInput == "/add") {
+                        text = $"{messageText} added to the list.";
+
+                        foreach (var item in new_items) {
+                            botData.savedList.Add(item);
+                        }
+                    }
+                    else if (botData.commandWaitingForInput == "/remove") {
+                        text = $"{messageText} removed from the list.";
+
+                        foreach (var item in new_items) {
+                            botData.savedList.Remove(item);
+                        }
                     }
 
                     WriteBotData(chatId, null, botData.savedList);
