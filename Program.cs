@@ -12,14 +12,14 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace ListCreateBot {
-    struct BotUpdate {
+    struct BotData {
         public long chatId;
         public string commandWaitingForInput;
         public string savedList;
     }
 
     class Program {
-        static BotUpdate botUpdate;
+        static BotData botData;
 
         static void Main(string[] args) {
             var botClient = new TelegramBotClient(GetBotToken());
@@ -50,8 +50,9 @@ namespace ListCreateBot {
 
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
 
+
             if (System.IO.File.Exists(GetFileName(chatId))) {
-                ReadUpdate(chatId);
+                ReadBotData(chatId);
             }
 
             string text;
@@ -59,12 +60,12 @@ namespace ListCreateBot {
             if (messageText == "/add") {
                 text = "OK! Send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
-                WriteUpdate(chatId, "/add");
+                WriteBotData(chatId, "/add");
             } else {
-                if (botUpdate.commandWaitingForInput != null) {
+                if (botData.commandWaitingForInput != null) {
                     text = $"{messageText} added to the list.";
 
-                    WriteUpdate(chatId, null, messageText);
+                    WriteBotData(chatId, null, messageText);
                 }
                 else {
                     text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
@@ -108,36 +109,36 @@ namespace ListCreateBot {
                 cancellationToken: cancellationToken);
         }
 
-        private static void ReadUpdate(long chatId) {
-            // Read all saved updates
+        private static void ReadBotData(long chatId) {
+            // Read bot saved data
             try {
                 var fileName = GetFileName(chatId);
-                var botUpdateString = System.IO.File.ReadAllText(fileName);
+                var botDataString = System.IO.File.ReadAllText(fileName);
                     
-                botUpdate = JsonConvert.DeserializeObject<BotUpdate>(botUpdateString);
+                botData = JsonConvert.DeserializeObject<BotData>(botDataString);
             } catch (Exception ex) {
                 Console.WriteLine($"Error reading or deserializing {ex}");
             }
         }
 
-        private static void WriteUpdate(long chatId, string commandWaitingForInput, string savedList) {
-            botUpdate = new BotUpdate {
+        private static void WriteBotData(long chatId, string commandWaitingForInput, string savedList) {
+            botData = new BotData {
                 chatId = chatId,
                 commandWaitingForInput = commandWaitingForInput,
                 savedList = savedList
             };
 
-            var botUpdateString = JsonConvert.SerializeObject(botUpdate);
+            var botDataString = JsonConvert.SerializeObject(botData);
 
-            System.IO.File.WriteAllText(GetFileName(chatId), botUpdateString);
+            System.IO.File.WriteAllText(GetFileName(chatId), botDataString);
         }
 
-        private static void WriteUpdate(long chatId, string commandWaitingForInput) {
-            WriteUpdate(chatId, commandWaitingForInput, botUpdate.savedList);
+        private static void WriteBotData(long chatId, string commandWaitingForInput) {
+            WriteBotData(chatId, commandWaitingForInput, botData.savedList);
         }
 
         private static string GetFileName(long chatId) {
-            return $"updates/update_{chatId}.json";
+            return $"botData/botData_{chatId}.json";
         }
     }
 }
