@@ -15,7 +15,7 @@ namespace ListCreateBot {
     struct BotData {
         public long chatId;
         public string commandWaitingForInput;
-        public string savedList;
+        public List<string> savedList;
     }
 
     class Program {
@@ -67,9 +67,7 @@ namespace ListCreateBot {
                     text = "Your list is empty.\nUse command /add to add itens to your list.";
                 }
                 else {
-                    List<string> list = StringToList(botData.savedList);
-
-                    foreach (var item in list) {
+                    foreach (var item in botData.savedList) {
                         text += $"• {item}\n";
                     }
                 }
@@ -77,13 +75,18 @@ namespace ListCreateBot {
             else {
                 if (botData.commandWaitingForInput != null) {
                     text = $"{messageText} added to the list.";
+                    
+                    if (botData.savedList == null) {
+                        botData.savedList = new List<string>();
+                    }
 
-                    if (botData.savedList != null) {
-                        WriteBotData(chatId, null, $"{botData.savedList}, {messageText}");
+                    var new_items = StringToList(messageText);
+
+                    foreach (var item in new_items) {
+                        botData.savedList.Add(item);
                     }
-                    else {
-                        WriteBotData(chatId, null, messageText);
-                    }
+
+                    WriteBotData(chatId, null, botData.savedList);
                 }
                 else {
                     text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
@@ -139,7 +142,7 @@ namespace ListCreateBot {
             }
         }
 
-        private static void WriteBotData(long chatId, string commandWaitingForInput, string savedList) {
+        private static void WriteBotData(long chatId, string commandWaitingForInput, List<string> savedList) {
             botData = new BotData {
                 chatId = chatId,
                 commandWaitingForInput = commandWaitingForInput,
