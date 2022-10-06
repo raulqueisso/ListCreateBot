@@ -65,8 +65,7 @@ namespace ListCreateBot {
             else if (messageText == "/mylist") {
                 if (botData.savedList == null) {
                     text = "Your list is empty.\nUse command /add to add itens to your list.";
-                }
-                else {
+                } else {
                     foreach (var item in botData.savedList) {
                         text += $"• {item}\n";
                     }
@@ -107,7 +106,9 @@ namespace ListCreateBot {
                 }
             }
 
-            await SendMessage(botClient, cancellationToken, chatId, text); 
+            if (text != "") {
+                await SendMessage(botClient, cancellationToken, chatId, text); 
+            }
         }
 
         private static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken) {
