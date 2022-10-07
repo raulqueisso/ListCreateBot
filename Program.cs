@@ -77,7 +77,7 @@ namespace ListCreateBot {
                 WriteBotData(chatId, "/remove");
             }
             else {
-                if (botData.commandWaitingForInput == null) {
+                if (botData.commandWaitingForInput != null) {
                     if (botData.savedList == null) {
                         botData.savedList = new List<string>();
                     }
