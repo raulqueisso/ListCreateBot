@@ -75,7 +75,7 @@ namespace ListCreateBot {
             }
             // Remove items command
             else if (messageText == "/remove") {
-                text = "OK! To remove, items send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
+                text = "OK! To remove items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
                 WriteBotData(chatId, "/remove");
             }
@@ -91,33 +91,20 @@ namespace ListCreateBot {
                     if (botData.commandWaitingForInput == "/add") {
                         text = AddItems(chatId, newItems);
                     }
-                    else if (botData.commandWaitingForInput == "/remove") {
-                        var itemsRemoved = new List<string>();
-                        var removedItem = false;
-
-                        foreach (var item in newItems) {
-                            if (botData.savedList.Contains(item)) {
-                                botData.savedList.Remove(item);
-                                itemsRemoved.Add(item);
-                                removedItem = true;
-                            }
-                            else {
-                                await SendMessage(botClient, cancellationToken, chatId, $"There is no {item} in the list.");
-                            }
-                        }
-
-                        if (removedItem) {
-                            text = $"{String.Join(", ", itemsRemoved)} removed from the list.";
-                        }
+                    if (botData.commandWaitingForInput == "/remove") {
+                        text = RemoveItems(botClient, cancellationToken, chatId, newItems).Result;
                     }
-
-                    WriteBotData(chatId, null, botData.savedList);
                 }
                 else {
                     // Add items in just one line
                     if (messageText.StartsWith("/add")) {
                         var newItems = StringToList(messageText.Remove(0, 5));
-                        text = AddItems(chatId, newItems);   
+                        text = AddItems(chatId, newItems);
+                    }
+                    // Remove items in just one line
+                    else if (messageText.StartsWith("/remove")) {
+                        var newItems = StringToList(messageText.Remove(0, 8));
+                        text = RemoveItems(botClient, cancellationToken, chatId, newItems).Result;
                     }
                     // Bot can't understand user interaction
                     else {
@@ -211,6 +198,30 @@ namespace ListCreateBot {
             WriteBotData(chatId, null, botData.savedList);
 
             return $"{String.Join(", ", items)} added to the list.";
+        }
+
+        private static async Task<string> RemoveItems(ITelegramBotClient botClient, CancellationToken cancellationToken, long chatId, List<string> items) {
+            var itemsRemoved = new List<string>();
+            var removedItem = false;
+
+            foreach (var item in items) {
+                if (botData.savedList.Contains(item)) {
+                    botData.savedList.Remove(item);
+                    itemsRemoved.Add(item);
+                    removedItem = true;
+                }
+                else {
+                    await SendMessage(botClient, cancellationToken, chatId, $"There is no {item} in the list.");
+                }
+            }
+
+            WriteBotData(chatId, null, botData.savedList);
+
+            if (removedItem) {
+                return $"{String.Join(", ", itemsRemoved)} removed from the list.";
+            }
+
+            return null;
         }
     }
 }
