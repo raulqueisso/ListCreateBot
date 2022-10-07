@@ -201,16 +201,11 @@ namespace ListCreateBot {
             List<string> list = new List<string>();
             list = listString.Split(", ").ToList();
 
-            foreach (var l in list) {
-                Console.WriteLine(l);
-            }
-
             return list;
         }
 
         private static string AddItems(long chatId, List<string> items) {
             foreach (var item in items) {
-                Console.WriteLine($"Adding: {item}");
                 botData.savedList.Add(item); 
             }
             WriteBotData(chatId, null, botData.savedList);
