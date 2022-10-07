@@ -79,6 +79,11 @@ namespace ListCreateBot {
 
                 WriteBotData(chatId, "/remove");
             }
+            // Sort list alphabetically
+            else if (messageText == "/sort") {
+                botData.savedList.Sort();
+                WriteBotData(chatId, null, botData.savedList);
+            }
             else {
                 // Items to be added or removed
                 if (botData.commandWaitingForInput != null) {
