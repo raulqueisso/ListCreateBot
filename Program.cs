@@ -89,25 +89,41 @@ namespace ListCreateBot {
                     var new_items = StringToList(messageText);
 
                     if (botData.commandWaitingForInput == "/add") {
-                        text = $"{messageText} added to the list.";
-
-                        foreach (var item in new_items) {
-                            botData.savedList.Add(item);
-                        }
+                        text = AddItems(new_items);
                     }
                     else if (botData.commandWaitingForInput == "/remove") {
-                        text = $"{messageText} removed from the list.";
+                        var itemsRemoved = new List<string>();
+                        var removedItem = false;
 
                         foreach (var item in new_items) {
-                            botData.savedList.Remove(item);
+                            if (botData.savedList.Contains(item)) {
+                                botData.savedList.Remove(item);
+                                itemsRemoved.Add(item);
+                                removedItem = true;
+                            }
+                            else {
+                                await SendMessage(botClient, cancellationToken, chatId, $"There is no {item} in the list.");
+                            }
+                        }
+
+                        if (removedItem) {
+                            text = $"{String.Join(", ", itemsRemoved)} removed from the list.";
                         }
                     }
 
                     WriteBotData(chatId, null, botData.savedList);
                 }
-                // Bot can't understand user interaction
                 else {
-                    text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
+                    // Add items in just one line
+                    if (messageText.StartsWith("/add")) {
+                        var new_items = StringToList(messageText.Remove(0, 5));
+                        text = AddItems(new_items);
+                        WriteBotData(chatId, null, botData.savedList);
+                    }
+                    // Bot can't understand user interaction
+                    else {
+                        text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
+                    }
                 }
             }
 
@@ -191,6 +207,15 @@ namespace ListCreateBot {
             }
 
             return list;
+        }
+
+        private static string AddItems(List<string> items) {
+            foreach (var item in items) {
+                Console.WriteLine($"Adding: {item}");
+                botData.savedList.Add(item); 
+            }
+
+            return $"{String.Join(", ", items)} added to the list.";
         }
     }
 }
