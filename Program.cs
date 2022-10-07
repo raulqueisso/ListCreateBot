@@ -86,16 +86,16 @@ namespace ListCreateBot {
                         botData.savedList = new List<string>();
                     }
 
-                    var new_items = StringToList(messageText);
+                    var newItems = StringToList(messageText);
 
                     if (botData.commandWaitingForInput == "/add") {
-                        text = AddItems(new_items);
+                        text = AddItems(chatId, newItems);
                     }
                     else if (botData.commandWaitingForInput == "/remove") {
                         var itemsRemoved = new List<string>();
                         var removedItem = false;
 
-                        foreach (var item in new_items) {
+                        foreach (var item in newItems) {
                             if (botData.savedList.Contains(item)) {
                                 botData.savedList.Remove(item);
                                 itemsRemoved.Add(item);
@@ -116,9 +116,8 @@ namespace ListCreateBot {
                 else {
                     // Add items in just one line
                     if (messageText.StartsWith("/add")) {
-                        var new_items = StringToList(messageText.Remove(0, 5));
-                        text = AddItems(new_items);
-                        WriteBotData(chatId, null, botData.savedList);
+                        var newItems = StringToList(messageText.Remove(0, 5));
+                        text = AddItems(chatId, newItems);   
                     }
                     // Bot can't understand user interaction
                     else {
@@ -209,11 +208,12 @@ namespace ListCreateBot {
             return list;
         }
 
-        private static string AddItems(List<string> items) {
+        private static string AddItems(long chatId, List<string> items) {
             foreach (var item in items) {
                 Console.WriteLine($"Adding: {item}");
                 botData.savedList.Add(item); 
             }
+            WriteBotData(chatId, null, botData.savedList);
 
             return $"{String.Join(", ", items)} added to the list.";
         }
