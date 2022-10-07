@@ -57,11 +57,13 @@ namespace ListCreateBot {
 
             var text = "";
 
+            // Add items command
             if (messageText == "/add") {
                 text = "OK! To add items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
                 WriteBotData(chatId, "/add");
             }
+            // Show user list command
             else if (messageText == "/mylist") {
                 if (botData.savedList == null) {
                     text = "Your list is empty.\nUse command /add to add itens to your list.";
@@ -71,12 +73,14 @@ namespace ListCreateBot {
                     }
                 }
             }
+            // Remove items command
             else if (messageText == "/remove") {
                 text = "OK! To remove, items send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
                 WriteBotData(chatId, "/remove");
             }
             else {
+                // Items to be added or removed
                 if (botData.commandWaitingForInput != null) {
                     if (botData.savedList == null) {
                         botData.savedList = new List<string>();
@@ -101,6 +105,7 @@ namespace ListCreateBot {
 
                     WriteBotData(chatId, null, botData.savedList);
                 }
+                // Bot can't understand user interaction
                 else {
                     text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
                 }
