@@ -65,7 +65,7 @@ namespace ListCreateBot {
             }
             // Show user list command
             else if (messageText == "/mylist") {
-                if (botData.savedList == null) {
+                if (botData.savedList == null || botData.savedList.Count == 0) {
                     text = "Your list is empty.\nUse command /add to add itens to your list.";
                 } else {
                     foreach (var item in botData.savedList) {
