@@ -46,6 +46,7 @@ namespace ListCreateBot {
             }
 
             var chatId = update.Message.Chat.Id;
+            var chatType = update.Message.Chat.Type;
             var messageText = update.Message.Text;
 
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}. {update.Message.Chat.Username}");
@@ -65,16 +66,26 @@ namespace ListCreateBot {
 
                 // Add items command
                 case "/add":
-                    text = "OK! To add items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
+                    if (chatType != ChatType.Private) {
+                        text = "To add items in this chat's list, write one or multiple items separated by a comma after the command. Like this:\n\n/add item 1, item 2, item 3";
+                    }
+                    else {
+                        text = "OK! To add items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
-                    WriteBotData(chatId, "/add");
+                        WriteBotData(chatId, "/add");
+                    }
                     break;
                 
                 // Remove items command
                 case "/remove":
-                    text = "OK! To remove items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
+                    if (chatType != ChatType.Private) {
+                        text = "To add items in this chat's list, write one or multiple items separated by a comma after the command. Like this:\n\n/add item 1, item 2, item 3";
+                    }
+                    else {
+                        text = "OK! To remove items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
 
-                    WriteBotData(chatId, "/remove");
+                        WriteBotData(chatId, "/remove");
+                    }
                     break;
                 
                 // Sort list alphabetically
@@ -87,7 +98,7 @@ namespace ListCreateBot {
                 // Erase the whole list
                 case "/clean":
                     WriteBotData(chatId, null, null);
-                    text = "Your list is empty now.\nUse command /add to add itens to your list.";
+                    text = "Your list is empty now.\nUse command /add to add items to your list.";
                     break;
 
                 // Every other case
@@ -245,7 +256,7 @@ namespace ListCreateBot {
             var text = "";
 
             if (botData.savedList == null || botData.savedList.Count == 0) {
-                text = "Your list is empty.\nUse command /add to add itens to your list.";
+                text = "Your list is empty.\nUse command /add to add items to your list.";
             }
             else {
                 foreach (var item in botData.savedList) {
