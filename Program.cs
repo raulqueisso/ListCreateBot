@@ -220,8 +220,10 @@ namespace ListCreateBot {
             EnsureSavedListExists();
 
             foreach (var item in items) {
-                if (botData.savedList.Contains(item)) {
-                    botData.savedList.Remove(item);
+                var itemIndex = GetItemIndex(item);
+
+                if (itemIndex != -1) {
+                    botData.savedList.RemoveAt(itemIndex);
                     itemsRemoved.Add(item);
                     removedItem = true;
                 }
@@ -236,7 +238,7 @@ namespace ListCreateBot {
                 return $"\"{String.Join(", ", itemsRemoved)}\" removed from the list.";
             }
 
-            return null;
+            return "";
         }
 
         private static string GetList() {
@@ -258,6 +260,16 @@ namespace ListCreateBot {
             if (botData.savedList == null) {
                 botData.savedList = new List<string>();
             }
+        }
+
+        private static int GetItemIndex(string item) {
+            var list = new List<string>(botData.savedList);
+
+            for (var i = 0; i < list.Count(); i++) {
+                list[i] = list[i].ToLower();
+            }
+
+            return list.IndexOf(item.ToLower());
         }
     }
 }
