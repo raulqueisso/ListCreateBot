@@ -60,14 +60,7 @@ namespace ListCreateBot {
             switch (messageText) {
                 // Show user list command
                 case "/mylist":
-                    if (botData.savedList == null || botData.savedList.Count == 0) {
-                        text = "Your list is empty.\nUse command /add to add itens to your list.";
-                    }
-                    else {
-                        foreach (var item in botData.savedList) {
-                            text += $"• {item}\n";
-                        }
-                    }
+                    text = GetList();
                     break;
 
                 // Add items command
@@ -88,6 +81,7 @@ namespace ListCreateBot {
                 case "/sort":
                     botData.savedList.Sort();
                     WriteBotData(chatId, null, botData.savedList);
+                    text = GetList();
                     break;
                 
                 // Every other case
@@ -236,6 +230,21 @@ namespace ListCreateBot {
             }
 
             return null;
+        }
+
+        private static string GetList() {
+            var text = "";
+
+            if (botData.savedList == null || botData.savedList.Count == 0) {
+                text = "Your list is empty.\nUse command /add to add itens to your list.";
+            }
+            else {
+                foreach (var item in botData.savedList) {
+                    text += $"• {item}\n";
+                }
+            }
+
+            return text;
         }
     }
 }
