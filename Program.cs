@@ -83,14 +83,18 @@ namespace ListCreateBot {
                     WriteBotData(chatId, null, botData.savedList);
                     text = GetList();
                     break;
-                
+
+                // Erase the whole list
+                case "/clean":
+                    WriteBotData(chatId, null, null);
+                    text = "Your list is empty now.\nUse command /add to add itens to your list.";
+                    break;
+
                 // Every other case
                 default:
                     // Bot is expecting for items to be added or removed
                     if (botData.commandWaitingForInput != null) {
-                        if (botData.savedList == null) {
-                            botData.savedList = new List<string>();
-                        }
+                        EnsureSavedListExists();
 
                         var newItems = StringToList(messageText);
 
@@ -200,8 +204,10 @@ namespace ListCreateBot {
         }
 
         private static string AddItems(long chatId, List<string> items) {
+            EnsureSavedListExists();
+
             foreach (var item in items) {
-                botData.savedList.Add(item); 
+                botData.savedList.Add(item);
             }
             WriteBotData(chatId, null, botData.savedList);
 
@@ -211,6 +217,7 @@ namespace ListCreateBot {
         private static async Task<string> RemoveItems(ITelegramBotClient botClient, CancellationToken cancellationToken, long chatId, List<string> items) {
             var itemsRemoved = new List<string>();
             var removedItem = false;
+            EnsureSavedListExists();
 
             foreach (var item in items) {
                 if (botData.savedList.Contains(item)) {
@@ -245,6 +252,12 @@ namespace ListCreateBot {
             }
 
             return text;
+        }
+
+        private static void EnsureSavedListExists() {
+            if (botData.savedList == null) {
+                botData.savedList = new List<string>();
+            }
         }
     }
 }
