@@ -207,7 +207,7 @@ namespace ListCreateBot {
             EnsureSavedListExists();
 
             foreach (var item in items) {
-                botData.savedList.Add(item);
+                botData.savedList.Add(item.Replace(item[0], Char.ToUpper(item[0])));
             }
             WriteBotData(chatId, null, botData.savedList);
 
