@@ -10,6 +10,7 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ListCreateBot {
     struct BotData {
@@ -29,6 +30,7 @@ namespace ListCreateBot {
             StartBot(botClient, cts);
 
             Console.WriteLine($"Start listening for messages.");
+
             Console.ReadLine();
 
             // Send cancellation request to stop bot
@@ -36,10 +38,17 @@ namespace ListCreateBot {
         }
 
         private static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
-            // Only process Message updates: https://core.telegram.org/bots/api#message
-            if (update.Type != UpdateType.Message) {
+            // Only process Message and CallbackQuery updates
+            if (update.Type != UpdateType.Message && update.Type != UpdateType.CallbackQuery) {
                 return;
             }
+
+            // CallbackQuery for /clean command
+            if (update.Type == UpdateType.CallbackQuery) {
+                await ProcessCallbackQuery(botClient, update, cancellationToken);
+                return;
+            }
+
             // Only process text messages
             if (update.Message.Type != MessageType.Text) {
                 return;
@@ -51,10 +60,8 @@ namespace ListCreateBot {
 
             Console.WriteLine($"Received a '{messageText}' message in chat {chatId}. {update.Message.Chat.Username}");
 
-
-            if (System.IO.File.Exists(GetFileName(chatId))) {
-                ReadBotData(chatId);
-            }
+            // Read BotData
+            ReadBotData(chatId);
 
             var text = "";
 
@@ -97,8 +104,15 @@ namespace ListCreateBot {
 
                 // Erase the whole list
                 case "/clean":
-                    WriteBotData(chatId, null, null);
-                    text = "Your list is empty now.\nUse command /add to add items to your list.";
+                    InlineKeyboardButton[] options = new InlineKeyboardButton[] { "Yes", "No" };
+
+                    await botClient.SendTextMessageAsync(
+                        chatId: chatId,
+                        text: "Do you really want to erase your whole list?",
+                        replyMarkup: new InlineKeyboardMarkup(options),
+                        cancellationToken: cancellationToken);
+                    
+                    WriteBotData(chatId, "/clean");
                     break;
 
                 // Every other case
@@ -138,7 +152,7 @@ namespace ListCreateBot {
             // Send message
             if (text != "") {
                 await SendMessage(botClient, cancellationToken, chatId, text); 
-            } 
+            }
         }
 
         private static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken) {
@@ -176,14 +190,16 @@ namespace ListCreateBot {
         }
 
         private static void ReadBotData(long chatId) {
-            // Read bot saved data
-            try {
-                var fileName = GetFileName(chatId);
-                var botDataString = System.IO.File.ReadAllText(fileName);
-                    
-                botData = JsonConvert.DeserializeObject<BotData>(botDataString);
-            } catch (Exception ex) {
-                Console.WriteLine($"Error reading or deserializing {ex}");
+            if (System.IO.File.Exists(GetFileName(chatId))) {
+                // Read bot saved data
+                try {
+                    var fileName = GetFileName(chatId);
+                    var botDataString = System.IO.File.ReadAllText(fileName);
+
+                    botData = JsonConvert.DeserializeObject<BotData>(botDataString);
+                } catch (Exception ex) {
+                    Console.WriteLine($"Error reading or deserializing {ex}");
+                }
             }
         }
 
@@ -281,6 +297,27 @@ namespace ListCreateBot {
             }
 
             return list.IndexOf(item.ToLower());
+        }
+
+
+        private static async Task ProcessCallbackQuery(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
+            var chatId = update.CallbackQuery.Message.Chat.Id;
+            ReadBotData(chatId);
+
+            var text = "";
+
+            if (botData.commandWaitingForInput == "/clean") {
+                if (update.CallbackQuery.Data == "Yes") {
+                    WriteBotData(chatId, null, null);
+                    text = "OK! Your list is empty now.\nUse command /add to add items to your list.";
+                } else {
+                    WriteBotData(chatId, null);
+                    text = "Command /clean canceled.";
+                }
+            }
+            if (text != "") {
+                await SendMessage(botClient, cancellationToken, chatId, text);
+            }
         }
     }
 }
