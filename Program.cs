@@ -57,70 +57,79 @@ namespace ListCreateBot {
 
             var text = "";
 
-            // Add items command
-            if (messageText == "/add") {
-                text = "OK! To add items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
-
-                WriteBotData(chatId, "/add");
-            }
-            // Show user list command
-            else if (messageText == "/mylist") {
-                if (botData.savedList == null || botData.savedList.Count == 0) {
-                    text = "Your list is empty.\nUse command /add to add itens to your list.";
-                } else {
-                    foreach (var item in botData.savedList) {
-                        text += $"• {item}\n";
+            switch (messageText) {
+                // Show user list command
+                case "/mylist":
+                    if (botData.savedList == null || botData.savedList.Count == 0) {
+                        text = "Your list is empty.\nUse command /add to add itens to your list.";
                     }
-                }
-            }
-            // Remove items command
-            else if (messageText == "/remove") {
-                text = "OK! To remove items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
-
-                WriteBotData(chatId, "/remove");
-            }
-            // Sort list alphabetically
-            else if (messageText == "/sort") {
-                botData.savedList.Sort();
-                WriteBotData(chatId, null, botData.savedList);
-            }
-            else {
-                // Items to be added or removed
-                if (botData.commandWaitingForInput != null) {
-                    if (botData.savedList == null) {
-                        botData.savedList = new List<string>();
-                    }
-
-                    var newItems = StringToList(messageText);
-
-                    if (botData.commandWaitingForInput == "/add") {
-                        text = AddItems(chatId, newItems);
-                    }
-                    if (botData.commandWaitingForInput == "/remove") {
-                        text = RemoveItems(botClient, cancellationToken, chatId, newItems).Result;
-                    }
-                }
-                else {
-                    // Add items in just one line
-                    if (messageText.StartsWith("/add")) {
-                        var newItems = StringToList(messageText.Remove(0, 5));
-                        text = AddItems(chatId, newItems);
-                    }
-                    // Remove items in just one line
-                    else if (messageText.StartsWith("/remove")) {
-                        var newItems = StringToList(messageText.Remove(0, 8));
-                        text = RemoveItems(botClient, cancellationToken, chatId, newItems).Result;
-                    }
-                    // Bot can't understand user interaction
                     else {
-                        text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
+                        foreach (var item in botData.savedList) {
+                            text += $"• {item}\n";
+                        }
                     }
-                }
+                    break;
+
+                // Add items command
+                case "/add":
+                    text = "OK! To add items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
+
+                    WriteBotData(chatId, "/add");
+                    break;
+                
+                // Remove items command
+                case "/remove":
+                    text = "OK! To remove items, send one or multiple items separated by a comma. Like this:\n\nItem 1, item 2, item 3";
+
+                    WriteBotData(chatId, "/remove");
+                    break;
+                
+                // Sort list alphabetically
+                case "/sort":
+                    botData.savedList.Sort();
+                    WriteBotData(chatId, null, botData.savedList);
+                    break;
+                
+                // Every other case
+                default:
+                    // Bot is expecting for items to be added or removed
+                    if (botData.commandWaitingForInput != null) {
+                        if (botData.savedList == null) {
+                            botData.savedList = new List<string>();
+                        }
+
+                        var newItems = StringToList(messageText);
+
+                        // Add items
+                        if (botData.commandWaitingForInput == "/add") {
+                            text = AddItems(chatId, newItems);
+                        }
+
+                        // Remove items
+                        if (botData.commandWaitingForInput == "/remove") {
+                            text = RemoveItems(botClient, cancellationToken, chatId, newItems).Result;
+                        }
+                    }
+                    else {
+                        if (messageText.StartsWith("/add")) { // Add items in just one line
+                            var newItems = StringToList(messageText.Remove(0, 5));
+                            text = AddItems(chatId, newItems);
+                        }
+                        else if (messageText.StartsWith("/remove")) { // Remove items in just one line
+                            var newItems = StringToList(messageText.Remove(0, 8));
+                            text = RemoveItems(botClient, cancellationToken, chatId, newItems).Result;
+                        }
+                        else { // Bot can't understand user interaction
+                            text = "Sorry, I can't understand what you are trying to do. Use my commands, please.";
+                        }
+                    }
+                    break;
             }
 
+            // Send message
             if (text != "") {
                 await SendMessage(botClient, cancellationToken, chatId, text); 
-            }
+            } 
         }
 
         private static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken) {
