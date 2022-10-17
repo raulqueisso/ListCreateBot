@@ -211,7 +211,7 @@ namespace ListCreateBot {
             }
             WriteBotData(chatId, null, botData.savedList);
 
-            return $"{String.Join(", ", items)} added to the list.";
+            return $"\"{String.Join(", ", items)}\" added to the list.";
         }
 
         private static async Task<string> RemoveItems(ITelegramBotClient botClient, CancellationToken cancellationToken, long chatId, List<string> items) {
@@ -226,14 +226,14 @@ namespace ListCreateBot {
                     removedItem = true;
                 }
                 else {
-                    await SendMessage(botClient, cancellationToken, chatId, $"There is no {item} in the list.");
+                    await SendMessage(botClient, cancellationToken, chatId, $"There is no \"{item}\" in the list.");
                 }
             }
 
             WriteBotData(chatId, null, botData.savedList);
 
             if (removedItem) {
-                return $"{String.Join(", ", itemsRemoved)} removed from the list.";
+                return $"\"{String.Join(", ", itemsRemoved)}\" removed from the list.";
             }
 
             return null;
