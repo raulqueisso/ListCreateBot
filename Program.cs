@@ -231,14 +231,27 @@ namespace ListCreateBot {
         }
 
         private static string AddItems(long chatId, List<string> items) {
+            var itemsAdded = new List<string>();
+            var addedItem = false;
             EnsureSavedListExists();
 
             foreach (var item in items) {
-                botData.savedList.Add(item.Replace(item[0], Char.ToUpper(item[0])));
+                if (string.IsNullOrEmpty(item)) {
+                    continue;
+                }
+
+                botData.savedList.Add(Capitalize(item));
+                itemsAdded.Add(item);
+                addedItem = true;
             }
+
             WriteBotData(chatId, null, botData.savedList);
 
-            return $"\"{String.Join(", ", items)}\" added to the list.";
+            if (addedItem) {
+                return $"\"{String.Join(", ", itemsAdded)}\" added to the list.";
+            }
+
+            return "";
         }
 
         private static async Task<string> RemoveItems(ITelegramBotClient botClient, CancellationToken cancellationToken, long chatId, List<string> items) {
@@ -247,6 +260,10 @@ namespace ListCreateBot {
             EnsureSavedListExists();
 
             foreach (var item in items) {
+                if (string.IsNullOrEmpty(item)) {
+                    continue;
+                }
+
                 var itemIndex = GetItemIndex(item);
 
                 if (itemIndex != -1) {
@@ -318,6 +335,14 @@ namespace ListCreateBot {
             if (text != "") {
                 await SendMessage(botClient, cancellationToken, chatId, text);
             }
+        }
+
+        private static string Capitalize(string str) {
+            var stringArray = str.ToArray();
+
+            stringArray[0] = char.ToUpper(stringArray[0]);
+
+            return new string(stringArray);
         }
     }
 }
