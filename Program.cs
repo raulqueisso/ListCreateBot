@@ -66,6 +66,14 @@ namespace ListCreateBot {
             // Read BotData
             ReadBotData(chatId);
 
+            // Remove bot name from the end of messages
+            var botName = "@ListCreateBot";
+            if (messageText.EndsWith(botName) && messageText.StartsWith("/")) {
+                messageText = messageText.Remove(messageText.Length - botName.Length, botName.Length);
+            }
+
+            messageText = messageText.TrimEnd();
+
             var text = "";
 
             switch (messageText) {
