@@ -43,6 +43,9 @@ namespace ListCreateBot {
                 return;
             }
 
+            // Erase botData stored
+            botData = new BotData();
+
             // CallbackQuery for /clean command
             if (update.Type == UpdateType.CallbackQuery) {
                 await ProcessCallbackQuery(botClient, update, cancellationToken);
